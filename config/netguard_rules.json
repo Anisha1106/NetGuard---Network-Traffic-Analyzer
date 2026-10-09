@@ -1,0 +1,11 @@
+{
+  "enable_port_scan_detection": true,
+  "port_scan_threshold_ports": 5,
+  "port_scan_window_us": 5000000,
+  "enable_traffic_spike_detection": true,
+  "traffic_spike_bytes_per_sec": 10000000,
+  "traffic_spike_window_us": 1000000,
+  "enable_connection_spike_detection": true,
+  "connection_spike_syn_per_sec": 20,
+  "enable_anomaly_detection": true
+}

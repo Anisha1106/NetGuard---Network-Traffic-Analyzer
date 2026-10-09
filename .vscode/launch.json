@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug NetGuard CLI",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/netguard_cli",
+            "args": [
+                "--pcap", "${workspaceFolder}/sample_attack.pcap",
+                "--rules", "${workspaceFolder}/config/netguard_rules.json",
+                "--json", "${workspaceFolder}/report.json",
+                "--csv", "${workspaceFolder}/alerts.csv",
+                "--threads", "4"
+            ],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "NetGuard: Build Project"
+        },
+        {
+            "name": "Run NetGuard Tests",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tests/netguard_tests",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "NetGuard: Build Project"
+        }
+    ]
+}

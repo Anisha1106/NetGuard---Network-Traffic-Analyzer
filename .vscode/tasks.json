@@ -1,0 +1,43 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "NetGuard: Configure CMake",
+            "type": "shell",
+            "command": "cmake -B build -DCMAKE_BUILD_TYPE=Debug",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "NetGuard: Build Project",
+            "type": "shell",
+            "command": "cmake --build build -j4",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "NetGuard: Run Unit Tests",
+            "type": "shell",
+            "command": "./build/tests/netguard_tests",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "NetGuard: Run Benchmarks",
+            "type": "shell",
+            "command": "./build/benchmarks/netguard_benchmarks",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "NetGuard: Generate Sample PCAP",
+            "type": "shell",
+            "command": "./build/netguard_sample_gen sample_attack.pcap",
+            "group": "none",
+            "problemMatcher": []
+        }
+    ]
+}

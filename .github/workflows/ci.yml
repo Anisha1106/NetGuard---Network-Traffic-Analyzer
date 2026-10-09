@@ -1,0 +1,74 @@
+name: NetGuard C++ CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    name: Build & Test (Ubuntu 24.04 GCC/Clang C++20)
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        compiler: [g++, clang++]
+        build_type: [Debug, Release]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential libpcap-dev
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
+                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                -DBUILD_TESTS=ON \
+                -DBUILD_BENCHMARKS=ON ..
+
+      - name: Build NetGuard Executables
+        run: |
+          cd build
+          make -j$(nproc)
+
+      - name: Run GoogleTest Suite
+        run: |
+          cd build
+          ./tests/netguard_tests
+
+      - name: Run Microbenchmarks
+        run: |
+          cd build
+          ./benchmarks/netguard_benchmarks
+
+      - name: Generate Sample PCAP & Test CLI
+        run: |
+          cd build
+          ./netguard_sample_gen sample_ci.pcap
+          ./netguard_cli --pcap sample_ci.pcap --json report.json --csv alerts.csv
+
+  docker-build:
+    name: Docker Image Build & Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: netguard-cpp:latest
