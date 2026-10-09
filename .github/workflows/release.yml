@@ -47,7 +47,7 @@ jobs:
           tar -czf netguard-${GITHUB_REF_NAME:-dev}.tar.gz -C dist .
 
       - name: Upload release artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: netguard-release
           path: netguard-${{ github.ref_name || 'dev' }}.tar.gz
