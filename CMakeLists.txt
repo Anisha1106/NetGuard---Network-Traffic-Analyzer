@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 project(netguard_cpp VERSION 1.0.0 LANGUAGES CXX C)
 
+include(GNUInstallDirs)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Compiler Flags & Optimization
 if(MSVC)
@@ -82,3 +85,21 @@ endif()
 if(BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
+
+install(TARGETS netguard_lib netguard_cli netguard_sample_gen
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/config/netguard_rules.json
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/netguard
+)
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/netguard
+)

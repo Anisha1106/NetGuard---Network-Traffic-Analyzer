@@ -1,0 +1,12 @@
+# Default owners for the repository
+* @netguard-maintainers
+
+# Core application code
+/include/ @netguard-maintainers
+/src/ @netguard-maintainers
+/config/ @netguard-maintainers
+
+# Build and pipeline automation
+/.github/ @netguard-maintainers
+/CMakeLists.txt @netguard-maintainers
+/Dockerfile @netguard-maintainers

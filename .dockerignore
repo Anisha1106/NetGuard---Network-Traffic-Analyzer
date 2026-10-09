@@ -1,0 +1,12 @@
+.git
+.github
+.vscode
+build
+**/build
+.gitignore
+README.md
+*.pcap
+report.json
+alerts.csv
+__pycache__
+.DS_Store

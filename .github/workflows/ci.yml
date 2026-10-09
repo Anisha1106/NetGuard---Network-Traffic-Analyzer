@@ -5,70 +5,100 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: netguard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
-    name: Build & Test (Ubuntu 24.04 GCC/Clang C++20)
+    name: Build & Test (${{ matrix.compiler }} / ${{ matrix.build_type }})
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         compiler: [g++, clang++]
         build_type: [Debug, Release]
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install System Dependencies
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            /var/cache/apt
+          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', 'tests/CMakeLists.txt', 'benchmarks/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.compiler }}-
+
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential libpcap-dev
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            libpcap-dev
 
       - name: Configure CMake
         run: |
-          mkdir build
-          cd build
-          cmake -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
-                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                -DBUILD_TESTS=ON \
-                -DBUILD_BENCHMARKS=ON ..
+          rm -rf build
+          cmake -S . -B build \
+            -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DBUILD_TESTS=ON \
+            -DBUILD_BENCHMARKS=ON
 
-      - name: Build NetGuard Executables
+      - name: Build project
         run: |
-          cd build
-          make -j$(nproc)
+          cmake --build build --parallel $(nproc)
 
-      - name: Run GoogleTest Suite
+      - name: Run unit tests
         run: |
-          cd build
-          ./tests/netguard_tests
+          ./build/tests/netguard_tests
 
-      - name: Run Microbenchmarks
+      - name: Run benchmarks
         run: |
-          cd build
-          ./benchmarks/netguard_benchmarks
+          ./build/benchmarks/netguard_benchmarks
 
-      - name: Generate Sample PCAP & Test CLI
+      - name: Run sample PCAP pipeline smoke test
         run: |
           cd build
           ./netguard_sample_gen sample_ci.pcap
           ./netguard_cli --pcap sample_ci.pcap --json report.json --csv alerts.csv
 
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: netguard-build-${{ matrix.compiler }}-${{ matrix.build_type }}
+          path: |
+            build/
+            report.json
+            alerts.csv
+          if-no-files-found: warn
+
   docker-build:
-    name: Docker Image Build & Verification
+    name: Docker image validation
     runs-on: ubuntu-latest
+    needs: build-and-test
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker Image
+      - name: Validate Docker build
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: false
           tags: netguard-cpp:latest
+          load: true

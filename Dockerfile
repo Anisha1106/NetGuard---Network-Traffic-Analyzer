@@ -1,9 +1,9 @@
 # Build Stage
-FROM ubuntu:24.04 AS builder
+FROM debian:bookworm-slim AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     g++ \
@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     libpcap-dev \
     git \
     python3 \
+    && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -25,11 +26,12 @@ RUN mkdir -p build && cd build && \
 RUN cd build && ./tests/netguard_tests
 
 # Runtime Stage
-FROM ubuntu:24.04 AS runner
+FROM debian:bookworm-slim AS runner
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpcap0.8 \
     ca-certificates \
+    && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
