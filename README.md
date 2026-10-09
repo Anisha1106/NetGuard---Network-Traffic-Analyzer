@@ -237,6 +237,3 @@ docker run --rm netguard-cpp:latest --pcap /app/sample_attack.pcap --threads 4
 
 ---
 
-## License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
